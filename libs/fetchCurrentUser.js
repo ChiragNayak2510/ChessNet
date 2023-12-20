@@ -1,9 +1,9 @@
 import axios from 'axios'
-const fetchCurrentUser = async () => {
+const fetchCurrentUser = async (token) => {
     try {
-      if(localStorage.getItem('token')===null)
+      if(token===null){
           return null;
-      const token = localStorage.getItem("token").slice(1,-1)
+      }
       const response = await axios.post('/api/current',{token});
       const currentUser = await response.data;
       return currentUser;

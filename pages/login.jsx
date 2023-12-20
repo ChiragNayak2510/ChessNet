@@ -13,13 +13,12 @@ export default function Login() {
   const router = useRouter()
 
   const login = async()=>{
-      console.log({password,username})
       try{
         const {data} = await axios.post('/api/login',{
           username,
           password
         })
-        console.log(data)
+
         toast.success('Login successul')
         localStorage.setItem('token',JSON.stringify(data))
         router.push('/')
@@ -42,7 +41,6 @@ export default function Login() {
         </div>
         </div>
     </div>
-    
     </div>
   )
 }

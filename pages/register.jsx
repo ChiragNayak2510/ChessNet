@@ -21,7 +21,6 @@ export default function Register() {
         email,
         password,
       });
-      console.log(data)
       toast.success('User registered successfully');
       localStorage.setItem('token', JSON.stringify(data));
       router.push('/');

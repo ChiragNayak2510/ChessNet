@@ -1,10 +1,15 @@
 
 import Button from "../Button"
 import { useRouter } from "next/router"
+import useCurrentUserStore from "@/libs/useCurrentUserStore"
+
 export default function Left(){
+    const setCurrentUser = useCurrentUserStore((state)=>state.setCurrentUser)
+    // const currentUser = useCurrentUserStore((state)=>state.currentUser)
     const router = useRouter()
     const signOut = ()=>{
         localStorage.removeItem('token')
+        setCurrentUser(null)
         router.push('/login')
     }
     return (

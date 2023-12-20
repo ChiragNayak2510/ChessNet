@@ -22,7 +22,6 @@ export default async function handler(req, res) {
     const passwordMatch = await bcrypt.compare(password, user.hashedPassword);
 
     if (passwordMatch) {
-      console.log('Login successful');
       const localJwtToken = jwt.sign({id : user._id}, personalToken);
       return res.status(200).json(localJwtToken);
       

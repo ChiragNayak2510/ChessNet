@@ -1,13 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect} from 'react';
 import fetchCurrentUser from '@/libs/fetchCurrentUser';
+import useCurrentUserStore from '@/libs/useCurrentUserStore';
 
 export default function Home() {
 
-  const [currentUser,setCurrentUser] = useState();
+  const setCurrentUser = useCurrentUserStore((state)=>state.setCurrentUser)
+  const currentUser = useCurrentUserStore((state)=>state.currentUser)
 
   useEffect(() => {
+    const token = localStorage.getItem('token').slice(1,-1)
     const fetchData = async () => {
-      const data = await fetchCurrentUser();
+      const data = await fetchCurrentUser(token);
       setCurrentUser(data)
     };
     fetchData();
@@ -20,7 +23,7 @@ export default function Home() {
     
   return (
     <div className='text-white flex justify-center items-center'>
-      This is home page
+      {currentUser.name}
     </div>
   );
 }

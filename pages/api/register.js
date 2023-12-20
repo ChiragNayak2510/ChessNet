@@ -13,7 +13,6 @@ try{
     await connectToDatabase();
     const {name,username,email,password} = req.body;
     const hashedPassword = await bcrypt.hash(password,12)
-    console.log({name,username,email,password})
     const user = await User.create({
             name,
             username,
