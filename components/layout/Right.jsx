@@ -17,7 +17,6 @@ export default function Right() {
   const fetchUser = async (token) => {
     const userData = await fetchCurrentUser(token);
     setCurrentUser(userData);
-    console.log(userData)
   };
 
   useEffect(() => {
@@ -40,27 +39,36 @@ export default function Right() {
 
 
   const openChat = (userId)=>{
+    if(!currentUser){
+      return
+    }
     if (localStorage?.getItem('token') !== null) {
       const token = localStorage.getItem('token').slice(1, -1);
-      fetchUser(token);
+      fetchUser(token); 
     }
     setUserId(userId)
-    console.log(data,currentUser._id, userId,"here ")
     const roomId = generateRoomId(currentUser._id,userId)
     router.push(`/chat/${roomId}`)
   }
 
   return (
     <div className="ml-auto border-l border-gray-600 h-screen w-1/4 text-white flex flex-col">
-      <div className="flex flex-col gap-6 mt-4 ml-2">
+      <div className='text-gray-400 text-xl font-bold flex items-center pt-4 pl-4'>
+        Suggested for you
+      </div>
+      <div className="flex flex-col gap-6 pl-4 pt-4">
         {data.map((user) => (
-          <div className="flex flex-row gap-2" key={user._id}>
-            {/* <Avatar userId={user.id} /> */}
-            <div className="flex flex-col">
-              <p className="text-white font-semibold text-md cursor-pointer" onClick={()=>{openChat(user._id)}}>{user.name}</p>
-              <p className="text-neutral-400 text-sm">@{user.username}</p>
+          !currentUser || user._id !== currentUser._id ? (
+            <div className="flex flex-row gap-2" key={user._id}>
+              {/* <Avatar userId={user.id} /> */}
+              <div className="flex flex-col">
+                <p className="text-white font-semibold text-md cursor-pointer text-lg" onClick={() => openChat(user._id)}>
+                  {user.name}
+                </p>
+                <p className="text-neutral-400 text-sm">@{user.username}</p>
+              </div>
             </div>
-          </div>
+          ) : null
         ))}
       </div>
     </div>

@@ -30,11 +30,11 @@ export default function Register() {
   };
 
   return (
-    <div className='flex'>
-      <div className='flex text-white w-full justify-center'>
-        <div className='flex w-3/4 justify-center items-center'>
-          <div>
-            <Input
+    <div className='relative top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] w-1/2 h-1/2 bg-gray-900 rounded-lg flex flex-col justify-center items-center gap-2'>
+        <div className='text-white font-bold text-3xl mb-2'>
+          New here? Sign up now!
+        </div>
+        <Input
               onChange={(e) => {
                 setName(e.target.value);
               }}
@@ -58,10 +58,12 @@ export default function Register() {
               }}
               placeholder={'Enter password'}
             ></Input>
-            <Button label='Register' onClick={register} visible={true}></Button>
-          </div>
+        <div className='w-[660px] text-white'>
+        <Button label='Register' onClick={register} visible={true}></Button>
         </div>
-      </div>
-    </div>
+        <div className='text-white cursor-pointer mt-3' onClick={()=>{router.push('/register')}}>
+           Already a member? Sign in
+        </div>
+  </div>
   );
 }

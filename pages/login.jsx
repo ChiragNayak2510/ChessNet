@@ -29,18 +29,18 @@ export default function Login() {
       }
   }
   return (
-    <div className='flex'>
-    <div className='flex text-white w-full justify-center'>
-        <div className='flex w-3/4 justify-center items-center'>
-        <div>
+        <div className='relative top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] w-1/2 p-[2rem] py-[4rem] bg-gray-900 rounded-lg flex flex-col justify-center items-center gap-2'>
+        <div className='text-white font-bold text-3xl mb-2'>
+          Welcome Back
+        </div>
         <Input onChange={(e)=>{setUsername(e.target.value)}} placeholder={"Enter username"}></Input>
         <Input onChange={(e)=>{setPassword(e.target.value)}} placeholder={"Enter password"}></Input>
-        <div className='w-4/5'>
+        <div className='w-full p-[2rem] text-white'>
         <Button label="Login" onClick={login} visible={true}></Button>
         </div>
+        <div className='text-white cursor-pointer mt-3' onClick={()=>{router.push('/register')}}>
+            Don't have an account? Register
         </div>
         </div>
-    </div>
-    </div>
   )
 }

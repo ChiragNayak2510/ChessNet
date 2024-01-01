@@ -8,7 +8,7 @@ export default function Home() {
   const currentUser = useCurrentUserStore((state)=>state.currentUser)
 
   useEffect(() => {
-    const token = localStorage.getItem('token').slice(1,-1)
+    const token = localStorage?.getItem('token').slice(1,-1)
     const fetchData = async () => {
       const data = await fetchCurrentUser(token);
       setCurrentUser(data)
@@ -23,7 +23,6 @@ export default function Home() {
     
   return (
     <div className='text-white flex justify-center items-center'>
-      {currentUser.name}
     </div>
   );
 }

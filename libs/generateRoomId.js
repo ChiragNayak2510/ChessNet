@@ -9,4 +9,5 @@ function generateChatRoomId(user1Id, user2Id) {
   return uniqueId.slice(0,15);
 }
 
+
 export default generateChatRoomId;
