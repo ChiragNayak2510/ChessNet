@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import Input from '../../components/Input';
-import Button from '../../components/Button';
 import useUserIdStore from '@/libs/useUserIdStore';
 import useCurrentUserStore from '@/libs/useCurrentUserStore';
 import io from 'socket.io-client';
@@ -8,6 +6,10 @@ import generateChatRoomId from '@/libs/generateRoomId';
 import { useRouter } from 'next/router';
 import axios from 'axios';
 import { FiSend } from "react-icons/fi";
+import { FaChessBoard } from "react-icons/fa6";
+import ChessboardComp from '@/components/ChessboardComp';
+import { Chess } from 'chess.js';
+
 
 export default function Chat() {
   const [messages, setMessages] = useState([]);
@@ -18,7 +20,29 @@ export default function Chat() {
   const [socket, setSocket] = useState(null);
   const router = useRouter();
   const [gameState,setGameState] = useState(false)
+  const [game,setGame] = useState(new Chess())
 
+  function makeAMove(move) {
+    const gameCopy = new Chess(game.fen())
+    try{
+    const result = gameCopy.move(move);
+    setGame(gameCopy);
+    return result; 
+    }catch(err){
+      return;
+    }
+  }
+
+  function onDrop(source,target){
+    const move = makeAMove({
+      from: source,
+      to: target,
+    });
+    // illegal move
+    if (move === null) return;
+    return true;
+  }
+  
   const fetchMessages = async () => {
     try {
       const response = await axios.get(`/api/chat/${roomId}`);
@@ -100,7 +124,8 @@ export default function Chat() {
 
   if(gameState){
     return <>
-        
+        <button className='text-white' onClick={()=>setGameState(false)}>Close</button> 
+        <ChessboardComp game={game} onDrop={onDrop}/>
     </>
   }
 
@@ -126,10 +151,13 @@ export default function Chat() {
 
   <form className="absolute bottom-0 w-[97%] text-white"  onSubmit={(e)=>handleSendMessage(e)}>
   <div className='flex gap-2 items-center mt-3 p-4 text-lg bg-gray-900 border-2 border-neutral-800 rounded-full text-white'>
-    <input className='flex-grow bg-gray-900 text-white' placeholder="Type a message" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} />
-    <div className='cursor-pointer flex items-center'>
+    <input className='flex-grow bg-gray-900 text-white outline-none' placeholder="Type a message" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} />
+    <div className='cursor-pointer flex items-center gap-5'>
+      <button onClick={()=>setGameState(true)}>
+      <FaChessBoard/>
+      </button>
       <button type='submit'>
-        <FiSend></FiSend>
+        <FiSend/>
       </button>
     </div>
   </div>
@@ -138,13 +166,3 @@ export default function Chat() {
     </>
   );
 }
-
-{/* <Input
-          value={newMessage}
-          onChange={(e) => {
-            setNewMessage(e.target.value);
-          }}
-          placeholder="Type a message"
-        >
-        <FiSend type = "submit" onClick={handleSendMessage}></FiSend>
-        </Input> */}

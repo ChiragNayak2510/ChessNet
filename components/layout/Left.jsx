@@ -19,9 +19,9 @@ export default function Left(){
     return (
         <div className="mr-auto border-r border-gray-600 h-screen w-1/4 text-white">
             <div className="h-[5vh] text-3xl text-white flex items-center pl-4">ChessNet</div>
-            <div className="flex gap-2 text-white items-center font-bold hover:bg-opacity-10"> 
-                <div onClick={()=>{router.push('/')}}>
-                <LeftBarItems label='Home' onClick={()=>{router.push('/')}}><FaHome size={28}/></LeftBarItems>
+            <div className="flex gap-2 text-white items-center  font-bold hover:bg-opacity-10"> 
+                <div className="w-full" onClick={()=>{router.push('/')}}>
+                <LeftBarItems label='Home'><FaHome size={28}/></LeftBarItems>
                 </div> 
             </div>
 
@@ -34,7 +34,7 @@ export default function Left(){
             </div>
 
             {currentUser && (<div className="flex gap-2 text-white items-center font-bold"> 
-                <div onClick={signOut}>
+                <div onClick={signOut} className="w-full">
                 <LeftBarItems label='Logout'><BiLogOut size={28}/></LeftBarItems>
                 </div>
             </div>)}
