@@ -10,7 +10,6 @@ async function connectToDatabase() {
     mongoose.connect(dbUrl).then(()=>{
       console.log('DB connected');
     })
-    console.log('DB connected');
   } catch (error) {
     console.error('Error connecting to MongoDB:', error);
     throw error;

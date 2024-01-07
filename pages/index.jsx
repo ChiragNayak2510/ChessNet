@@ -1,7 +1,7 @@
 import { useEffect} from 'react';
 import fetchCurrentUser from '@/libs/fetchCurrentUser';
-import useCurrentUserStore from '@/libs/useCurrentUserStore';
-import { Chessboard } from 'react-chessboard';
+import useCurrentUserStore from '@/libs/store/useCurrentUserStore';
+
 
 export default function Home() {
   

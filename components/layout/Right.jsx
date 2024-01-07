@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import useUserIdStore from '@/libs/useUserIdStore';
+import useUserIdStore from '@/libs/store/useUserIdStore';
 import { useRouter } from 'next/router';
 import generateRoomId from '@/libs/generateRoomId'
-import useCurrentUserStore from '@/libs/useCurrentUserStore';
+import useCurrentUserStore from '@/libs/store/useCurrentUserStore';
 import fetchCurrentUser from '@/libs/fetchCurrentUser';
+import useUserStore from '@/libs/store/useUserStore';
 
 export default function Right() {
   const [data, setData] = useState([]);
   const setUserId = useUserIdStore((state)=>state.setUserId)
   const currentUser = useCurrentUserStore((state)=>state.currentUser)
   const setCurrentUser = useCurrentUserStore((state)=>state.setCurrentUser)
-  const userId = useUserIdStore((state)=>state.userId)
+  const setUser = useUserStore((state) => state.setUser);
   const router = useRouter();
 
   const fetchUser = async (token) => {
@@ -22,7 +23,7 @@ export default function Right() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/users');
+        const response = await axios.get('api/users');
         setData(response.data);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -38,7 +39,7 @@ export default function Right() {
   }, []);
 
 
-  const openChat = (userId)=>{
+  const openChat = (userId,username)=>{
     if(!currentUser){
       return
     }
@@ -47,6 +48,7 @@ export default function Right() {
       fetchUser(token); 
     }
     setUserId(userId)
+    setUser(username)
     const roomId = generateRoomId(currentUser._id,userId)
     router.push(`/chat/${roomId}`)
   }
@@ -62,7 +64,7 @@ export default function Right() {
             <div className="flex flex-row gap-2" key={user._id}>
               {/* <Avatar userId={user.id} /> */}
               <div className="flex flex-col">
-                <p className="text-white font-semibold text-md cursor-pointer text-lg" onClick={() => openChat(user._id)}>
+                <p className="text-white font-semibold text-md cursor-pointer text-lg" onClick={() => {openChat(user._id,user.name)}}>
                   {user.name}
                 </p>
                 <p className="text-neutral-400 text-sm">@{user.username}</p>

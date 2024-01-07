@@ -6,6 +6,8 @@ const server = http.createServer(app);
 const { Server } = require('socket.io');
 const { connectToDatabase } = require('./mongo');
 const PORT = 8080;
+const {Chess} = require('chess.js');
+
 
 const ChatSchema = new mongoose.Schema({
   roomId : {type:String},
@@ -16,7 +18,6 @@ const ChatSchema = new mongoose.Schema({
 });
 
 const Chat = mongoose.model('Chat', ChatSchema);
-
 app.get('/', (req, res) => {
   res.send('Hello, World!');
 });
@@ -28,11 +29,26 @@ const io = new Server(server, {
   }
 });
 
+const games = []
 io.on('connection', (socket) => {
   socket.on('joinRoom', ({ roomId, userId }) => {
     socket.join(roomId);
     console.log('joined room', roomId, userId);
   });
+
+  socket.on('joinGameRoom',(currentUser,{id}) =>{
+    socket.join(id)
+    console.log('joined game',currentUser,id)
+  })
+
+  socket.on('move',({game,fen,id})=>{
+    const gameCopy = new Chess(fen)
+    socket.broadcast.to(id).emit('move',game,fen);
+  })
+
+  socket.on('request',(gameRequest,roomId)=>{
+    socket.broadcast.to(roomId).emit('request', gameRequest);
+  })
 
   socket.on('message', (senderId, receiverId, roomId, message) => {
     socket.broadcast.to(roomId).emit('message', message);
@@ -58,6 +74,9 @@ io.on('connection', (socket) => {
       console.log(err);
     }
   });
+
+
+
 });
 
 server.listen(PORT, () => {

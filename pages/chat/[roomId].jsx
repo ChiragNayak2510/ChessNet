@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import useUserIdStore from '@/libs/useUserIdStore';
-import useCurrentUserStore from '@/libs/useCurrentUserStore';
+import useUserIdStore from '@/libs/store/useUserIdStore';
+import useCurrentUserStore from '@/libs/store/useCurrentUserStore';
 import io from 'socket.io-client';
 import generateChatRoomId from '@/libs/generateRoomId';
 import { useRouter } from 'next/router';
@@ -9,39 +9,73 @@ import { FiSend } from "react-icons/fi";
 import { FaChessBoard } from "react-icons/fa6";
 import ChessboardComp from '@/components/ChessboardComp';
 import { Chess } from 'chess.js';
+import Button from '@/components/Button';
+import useUserStore from '@/libs/store/useUserStore';
 
 
 export default function Chat() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const userId = useUserIdStore((state) => state.userId);
+  const user = useUserStore((state)=>state.user)
   const currentUser = useCurrentUserStore((state) => state.currentUser);
   const [roomId, setRoomId] = useState();
   const [socket, setSocket] = useState(null);
   const router = useRouter();
   const [gameState,setGameState] = useState(false)
   const [game,setGame] = useState(new Chess())
+  const [isplayerTurn,setIsPlayerTurn] = useState(true)
+  const [gameRequest,setGameRequest] = useState(false)
+  const [orientation,setOrientation] = useState()
 
   function makeAMove(move) {
-    const gameCopy = new Chess(game.fen())
+    let gameCopy = new Chess(game.fen());
     try{
     const result = gameCopy.move(move);
-    setGame(gameCopy);
-    return result; 
-    }catch(err){
-      return;
+    if (result === null) {
+      console.log('Invalid move:', move);
+      return null;
     }
+    if(result.color!==orientation.slice(0,1)){
+      console.log('Invalid move:', move);
+      return null;
+    }
+    console.log('Valid move:', result);
+    gameCopy = new Chess(result.after);
+    setGame(gameCopy);
+    const fen = gameCopy.fen();
+    socket.emit('move', { game, fen, id: "123456" });
+    return result;
+    }catch(err){
+      console.log(err)
+      return;
+    } 
   }
 
   function onDrop(source,target){
+    if(!isplayerTurn) return;
     const move = makeAMove({
       from: source,
       to: target,
     });
-    // illegal move
     if (move === null) return;
-    return true;
   }
+
+  const handleGame = ()=>{
+      setGameState(true)
+      setOrientation('white')
+      socket.emit('joinGameRoom', currentUser.name,{id:'123456'});
+      socket.emit('request',true,roomId);
+  }
+
+  const handleRequest = ()=>{
+      setGameState(true)
+      setGame(game)
+      setGameRequest(false)
+      setOrientation('black')
+      socket.emit('joinGameRoom', currentUser.name,{id:'123456'},gameRequest);
+  }
+
   
   const fetchMessages = async () => {
     try {
@@ -96,7 +130,7 @@ export default function Chat() {
       console.log('Received message', data);
       setMessages((prevMessages) => [
         ...prevMessages,
-        { text: data, user: 'Me' },
+        { text: data, user: 'Me',date:new Date().toLocaleTimeString([],{ hour: '2-digit', minute: '2-digit' }) },
       ]);
     });
 
@@ -122,14 +156,37 @@ export default function Chat() {
     setNewMessage('');
   };
 
+  socket?.on('move',(game,fen)=>{
+      game = new Chess(fen)
+      setGame(game)
+      console.log('Received',game.fen())
+  })
+
+  socket?.on('request',(gameRequest)=>{
+    setGameRequest(gameRequest)
+  })
+  
+  if(gameRequest){
+    return (<div className='relative top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] w-1/2 p-[2rem] py-[4rem] bg-gray-900 rounded-lg flex flex-col justify-center items-center gap-2'>
+    <div className='text-white font-bold text-3xl mb-2'>
+      {user} sent a game request
+    <div className='mt-6'>
+    <Button visible={true} label={'Accept'} onClick={handleRequest}/>
+    <Button visible={true} label={'Decline'} onClick={()=>{setGameState(false)}}/>
+    </div>
+  </div>
+  </div>
+  )
+  }
+
   if(gameState){
     return <>
-        <button className='text-white' onClick={()=>setGameState(false)}>Close</button> 
-        <ChessboardComp game={game} onDrop={onDrop}/>
+        
+        <button className='text-white' onClick={()=>{setGameState(false); setGame(new Chess())}}>Close</button> 
+        <ChessboardComp game={game} onDrop={onDrop} orientation={orientation}/>
     </>
   }
 
-  
   return (
     <>
     <div className='w-full h-[calc(100vh-90px)] relative pl-6 pr-6'>
@@ -139,11 +196,10 @@ export default function Chat() {
             <div
               key={index}
               style={message.type==='outgoing'?{float : 'right'}:{float : 'left'}}
-              className="p-4 flex rounded-full bg-gray-700   items-end max-w-1/2 clear-both"
+              className="p-4 flex rounded-full bg-gray-700 items-end max-w-1/2 clear-both"
             >
               {message.text}
-              <div className='ml-4 opacity-50'>{message.date}</div>
-              
+              <div className='ml-4 opacity-50'>{message.date}</div>  
             </div>
           ))}
         </div>
@@ -153,7 +209,7 @@ export default function Chat() {
   <div className='flex gap-2 items-center mt-3 p-4 text-lg bg-gray-900 border-2 border-neutral-800 rounded-full text-white'>
     <input className='flex-grow bg-gray-900 text-white outline-none' placeholder="Type a message" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} />
     <div className='cursor-pointer flex items-center gap-5'>
-      <button onClick={()=>setGameState(true)}>
+      <button onClick={handleGame}>
       <FaChessBoard/>
       </button>
       <button type='submit'>

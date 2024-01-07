@@ -1,6 +1,6 @@
 
 import { useRouter } from "next/router"
-import useCurrentUserStore from "@/libs/useCurrentUserStore"
+import useCurrentUserStore from "@/libs/store/useCurrentUserStore"
 import {FaHome} from 'react-icons/fa'
 import{BiLogOut} from 'react-icons/bi';
 import LeftBarItems from "../LeftBarItems"
