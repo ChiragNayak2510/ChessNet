@@ -6,7 +6,7 @@ const server = http.createServer(app);
 const { Server } = require('socket.io');
 const { connectToDatabase } = require('./mongo');
 const PORT = 8080;
-const {Chess} = require('chess.js');
+
 
 
 const ChatSchema = new mongoose.Schema({
@@ -36,18 +36,21 @@ io.on('connection', (socket) => {
     console.log('joined room', roomId, userId);
   });
 
-  socket.on('joinGameRoom',(currentUser,{id}) =>{
-    socket.join(id)
-    console.log('joined game',currentUser,id)
+  socket.on('joinGameRoom',(currentUser,gameId) =>{
+    socket.join(gameId) 
+    console.log('joined game',currentUser,gameId)
   })
 
-  socket.on('move',({game,fen,id})=>{
-    const gameCopy = new Chess(fen)
+  socket.on('move',(game,fen,id)=>{
     socket.broadcast.to(id).emit('move',game,fen);
   })
 
-  socket.on('request',(gameRequest,roomId)=>{
-    socket.broadcast.to(roomId).emit('request', gameRequest);
+  socket.on('request',(gameRequest,roomId,gameId)=>{
+    socket.broadcast.to(roomId).emit('request', gameRequest,gameId);
+  })
+
+  socket.on('decline',(gameState,gameId)=>{
+    socket.broadcast.to(gameId).emit('declined',gameState);
   })
 
   socket.on('message', (senderId, receiverId, roomId, message) => {

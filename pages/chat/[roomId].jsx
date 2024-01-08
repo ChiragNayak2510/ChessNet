@@ -4,13 +4,14 @@ import useCurrentUserStore from '@/libs/store/useCurrentUserStore';
 import io from 'socket.io-client';
 import generateChatRoomId from '@/libs/generateRoomId';
 import { useRouter } from 'next/router';
-import axios from 'axios';
-import { FiSend } from "react-icons/fi";
+  import axios from 'axios';
+  import { FiSend } from "react-icons/fi";      
 import { FaChessBoard } from "react-icons/fa6";
 import ChessboardComp from '@/components/ChessboardComp';
 import { Chess } from 'chess.js';
 import Button from '@/components/Button';
 import useUserStore from '@/libs/store/useUserStore';
+import usegameStateStore from '@/libs/store/useGameStateStore';
 
 
 export default function Chat() {
@@ -22,11 +23,13 @@ export default function Chat() {
   const [roomId, setRoomId] = useState();
   const [socket, setSocket] = useState(null);
   const router = useRouter();
-  const [gameState,setGameState] = useState(false)
+  const gameState = usegameStateStore((state)=>state.gameState)
+  const setGameState = usegameStateStore((state)=>state.setGameState)
   const [game,setGame] = useState(new Chess())
-  const [isplayerTurn,setIsPlayerTurn] = useState(true)
   const [gameRequest,setGameRequest] = useState(false)
   const [orientation,setOrientation] = useState()
+  const [gameId,setGameId] = useState()
+
 
   function makeAMove(move) {
     let gameCopy = new Chess(game.fen());
@@ -44,7 +47,7 @@ export default function Chat() {
     gameCopy = new Chess(result.after);
     setGame(gameCopy);
     const fen = gameCopy.fen();
-    socket.emit('move', { game, fen, id: "123456" });
+    socket.emit('move', game, fen, gameId);
     return result;
     }catch(err){
       console.log(err)
@@ -53,7 +56,6 @@ export default function Chat() {
   }
 
   function onDrop(source,target){
-    if(!isplayerTurn) return;
     const move = makeAMove({
       from: source,
       to: target,
@@ -62,18 +64,28 @@ export default function Chat() {
   }
 
   const handleGame = ()=>{
+      setGameId(generateChatRoomId(currentUser.name,''))
+      console.log(gameId)
       setGameState(true)
       setOrientation('white')
-      socket.emit('joinGameRoom', currentUser.name,{id:'123456'});
-      socket.emit('request',true,roomId);
+      socket.emit('joinGameRoom', currentUser.name,gameId);
+      socket.emit('request',true,roomId,gameId);
+      // socket.emit('message',currentUser._id,userId,roomId,"JOIN GAME REQUEST");
   }
 
-  const handleRequest = ()=>{
+  const acceptRequest = ()=>{
       setGameState(true)
       setGame(game)
       setGameRequest(false)
       setOrientation('black')
-      socket.emit('joinGameRoom', currentUser.name,{id:'123456'},gameRequest);
+      socket.emit('joinGameRoom', currentUser.name,gameId)
+      // socket.emit('message',currentUser._id,userId,roomId,"JOINED GAME");
+  }
+
+  const declineRequest = ()=>{
+      setGameState(false)
+      setGameRequest(false)
+      socket.emit('decline',gameState,gameId)
   }
 
   
@@ -162,8 +174,13 @@ export default function Chat() {
       console.log('Received',game.fen())
   })
 
-  socket?.on('request',(gameRequest)=>{
+  socket?.on('request',(gameRequest,gameId)=>{
     setGameRequest(gameRequest)
+    setGameId(gameId)
+  })
+
+  socket?.on('declined',(gameState)=>{
+    setGameState(gameState)
   })
   
   if(gameRequest){
@@ -171,8 +188,8 @@ export default function Chat() {
     <div className='text-white font-bold text-3xl mb-2'>
       {user} sent a game request
     <div className='mt-6'>
-    <Button visible={true} label={'Accept'} onClick={handleRequest}/>
-    <Button visible={true} label={'Decline'} onClick={()=>{setGameState(false)}}/>
+    <Button visible={true} label={'Accept'} onClick={acceptRequest}/>
+    <Button visible={true} label={'Decline'} onClick={declineRequest}/>
     </div>
   </div>
   </div>
@@ -181,7 +198,6 @@ export default function Chat() {
 
   if(gameState){
     return <>
-        
         <button className='text-white' onClick={()=>{setGameState(false); setGame(new Chess())}}>Close</button> 
         <ChessboardComp game={game} onDrop={onDrop} orientation={orientation}/>
     </>

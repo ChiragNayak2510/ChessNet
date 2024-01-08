@@ -6,6 +6,7 @@ import generateRoomId from '@/libs/generateRoomId'
 import useCurrentUserStore from '@/libs/store/useCurrentUserStore';
 import fetchCurrentUser from '@/libs/fetchCurrentUser';
 import useUserStore from '@/libs/store/useUserStore';
+import usegameStateStore from '@/libs/store/useGameStateStore';
 
 export default function Right() {
   const [data, setData] = useState([]);
@@ -13,6 +14,7 @@ export default function Right() {
   const currentUser = useCurrentUserStore((state)=>state.currentUser)
   const setCurrentUser = useCurrentUserStore((state)=>state.setCurrentUser)
   const setUser = useUserStore((state) => state.setUser);
+  const gameState = usegameStateStore((state)=>state.gameState)
   const router = useRouter();
 
   const fetchUser = async (token) => {
@@ -40,7 +42,8 @@ export default function Right() {
 
 
   const openChat = (userId,username)=>{
-    if(!currentUser){
+
+    if(!currentUser || gameState===true){
       return
     }
     if (localStorage?.getItem('token') !== null) {
