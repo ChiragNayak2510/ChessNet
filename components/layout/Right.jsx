@@ -67,11 +67,17 @@ export default function Right() {
             <div className="flex flex-row gap-2" key={user._id}>
               {/* <Avatar userId={user.id} /> */}
               <div className="flex flex-col">
-                <p className="text-white font-semibold text-md cursor-pointer text-lg" onClick={() => {openChat(user._id,user.name)}}>
+                <p className="text-white font-semibold text-md cursor-pointer text-lg">
                   {user.name}
                 </p>
+              
                 <p className="text-neutral-400 text-sm">@{user.username}</p>
-              </div>
+                </div>
+                {currentUser && (
+                <div className='flex text-purple-500 cursor-pointer w-full items-center font-semibold justify-end pr-8'>
+                <p className='hover:text-white' onClick={() => {openChat(user._id,user.name)}}>Chat</p>
+                </div>
+                )}
             </div>
           ) : null
         ))}
