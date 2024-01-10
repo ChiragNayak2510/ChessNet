@@ -74,9 +74,12 @@ export default function Right() {
                 <p className="text-neutral-400 text-sm">@{user.username}</p>
                 </div>
                 {currentUser && (
-                <div className='flex text-purple-500 cursor-pointer w-full items-center font-semibold justify-end pr-8'>
+                <> 
+                <div className='flex flex-grow'></div>
+                <div className='flex text-purple-500 cursor-pointer font-semibold justify-end pr-8'>
                 <p className='hover:text-white' onClick={() => {openChat(user._id,user.name)}}>Chat</p>
                 </div>
+                </>
                 )}
             </div>
           ) : null
