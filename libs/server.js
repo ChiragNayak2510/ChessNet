@@ -38,6 +38,7 @@ io.on('connection', (socket) => {
 
   socket.on('joinGameRoom',(currentUser,gameId) =>{
     socket.join(gameId) 
+    socket.broadcast.to(gameId).emit('accepted','game');
     console.log('joined game',currentUser,gameId)
   })
 
@@ -51,6 +52,16 @@ io.on('connection', (socket) => {
 
   socket.on('decline',(gameState,gameId)=>{
     socket.broadcast.to(gameId).emit('declined',gameState);
+  })
+
+  socket.on('onlineCheck',(roomId)=>{
+    const roomMembers = io.sockets.adapter.rooms.get(roomId).size;
+    socket.emit('onlineCheckResult',roomMembers);
+    console.log(roomMembers)
+  })
+
+  socket.on('abort',(modalState,gameId)=>{
+    socket.broadcast.to(gameId).emit('aborted',modalState)
   })
 
   socket.on('message', (senderId, receiverId, roomId, message) => {

@@ -7,6 +7,7 @@ import useCurrentUserStore from '@/libs/store/useCurrentUserStore';
 import fetchCurrentUser from '@/libs/fetchCurrentUser';
 import useUserStore from '@/libs/store/useUserStore';
 import usegameStateStore from '@/libs/store/useGameStateStore';
+import Avatar from '../Avatar';
 
 export default function Right() {
   const [data, setData] = useState([]);
@@ -14,6 +15,7 @@ export default function Right() {
   const currentUser = useCurrentUserStore((state)=>state.currentUser)
   const setCurrentUser = useCurrentUserStore((state)=>state.setCurrentUser)
   const setUser = useUserStore((state) => state.setUser);
+  const userId = useUserIdStore((state) => state.userId);
   const gameState = usegameStateStore((state)=>state.gameState)
   const router = useRouter();
 
@@ -64,8 +66,8 @@ export default function Right() {
       <div className="flex flex-col gap-6 pl-4 pt-4">
         {data.map((user) => (
           !currentUser || user._id !== currentUser._id ? (
-            <div className="flex flex-row gap-2" key={user._id}>
-              {/* <Avatar userId={user.id} /> */}
+            <div className="flex flex-row gap-4" key={user._id}>
+              <Avatar userId={userId} />
               <div className="flex flex-col">
                 <p className="text-white font-semibold text-md cursor-pointer text-lg">
                   {user.name}

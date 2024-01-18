@@ -4,14 +4,15 @@ import useCurrentUserStore from '@/libs/store/useCurrentUserStore';
 import io from 'socket.io-client';
 import generateChatRoomId from '@/libs/generateRoomId';
 import { useRouter } from 'next/router';
-  import axios from 'axios';
-  import { FiSend } from "react-icons/fi";      
+import axios from 'axios';
+import { FiSend } from "react-icons/fi";      
 import { FaChessBoard } from "react-icons/fa6";
-import ChessboardComp from '@/components/ChessboardComp';
 import { Chess } from 'chess.js';
 import Button from '@/components/Button';
 import useUserStore from '@/libs/store/useUserStore';
 import usegameStateStore from '@/libs/store/useGameStateStore';
+import ChessboardComponent from '@/components/ChessboardComp';
+import { toast } from 'react-toastify';
 
 
 export default function Chat() {
@@ -29,6 +30,7 @@ export default function Chat() {
   const [gameRequest,setGameRequest] = useState(false)
   const [orientation,setOrientation] = useState()
   const [gameId,setGameId] = useState()
+  const [modalState,setModalState] = useState(null)
 
 
   function makeAMove(move) {
@@ -63,20 +65,52 @@ export default function Chat() {
     if (move === null) return;
   }
 
-  const handleGame = ()=>{
-      setGameId(generateChatRoomId(currentUser.name,''))
-      console.log(gameId)
-      setGameState(true)
-      setOrientation('white')
-      socket.emit('joinGameRoom', currentUser.name,gameId);
-      socket.emit('request',true,roomId,gameId);
-      // socket.emit('message',currentUser._id,userId,roomId,"JOIN GAME REQUEST");
+  const sendRoomMemberRequest = (roomId) => {
+    return new Promise((resolve, reject) => {
+      // Listen for the response from the server
+      socket.once('onlineCheckResult', (roomMembers) => {
+        resolve(roomMembers);
+      });
+  
+      // Send the room member request to the server
+      socket.emit('onlineCheck', roomId);
+    });
   }
+  
+  const handleGame = async () => {
+      try {
+        const roomMembers = await sendRoomMemberRequest(roomId);
+    
+        console.log(`Number of members in the room: ${roomMembers}`);
+    
+        // Continue with the rest of your logic based on roomMembers
+        if (roomMembers >= 2) {
+          setGameId(generateChatRoomId(currentUser.name, ''));
+          if(!gameId){
+            toast.error('Something went wrong!')
+            return;
+          }
+          console.log(currentUser, gameId);
+          setGameState(true);
+          setModalState('request');
+          setOrientation('white');
+          socket.emit('joinGameRoom', currentUser.name, gameId);
+          socket.emit('request', true, roomId, gameId);
+        } else {
+          toast.error('User not online');
+        }
+      } catch (error) {
+        toast.error('Error handling game:', error);
+      }
+  };
+  
+  
 
   const acceptRequest = ()=>{
       setGameState(true)
       setGame(game)
       setGameRequest(false)
+      setModalState('game')
       setOrientation('black')
       socket.emit('joinGameRoom', currentUser.name,gameId)
       // socket.emit('message',currentUser._id,userId,roomId,"JOINED GAME");
@@ -88,7 +122,6 @@ export default function Chat() {
       socket.emit('decline',gameState,gameId)
   }
 
-  
   const fetchMessages = async () => {
     try {
       const response = await axios.get(`/api/chat/${roomId}`);
@@ -153,7 +186,7 @@ export default function Chat() {
   }, [router.asPath,userId]);
 
   const handleSendMessage = async (e) => {
-    e.preventDefault()
+    e.stopPropagation()
     if (newMessage.trim() === '') {
       return;
     }
@@ -181,7 +214,16 @@ export default function Chat() {
 
   socket?.on('declined',(gameState)=>{
     setGameState(gameState)
+    setModalState('end')  
   })
+
+  socket?.on('accepted',(game)=>{
+    // setGameState(gameState)
+    // setGame(game)
+    setModalState('game')  
+  })
+
+
   
   if(gameRequest){
     return (<div className='relative top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%] w-1/2 p-[2rem] py-[4rem] bg-gray-900 rounded-lg flex flex-col justify-center items-center gap-2'>
@@ -198,8 +240,22 @@ export default function Chat() {
 
   if(gameState){
     return <>
-        <button className='text-white' onClick={()=>{setGameState(false); setGame(new Chess())}}>Close</button> 
-        <ChessboardComp game={game} onDrop={onDrop} orientation={orientation}/>
+        <button className='text-white' onClick={()=>{setGameState(false)}}>Close</button> 
+        <ChessboardComponent 
+        game={game} 
+        onDrop={onDrop} 
+        orientation={orientation} 
+        currentUser={currentUser?.name} 
+        user={user} 
+        setGameState={setGameState} 
+        setGame={setGame} 
+        modalState={modalState}
+        setModalState={setModalState}
+        socket = {socket}
+        gameId={gameId}
+        sendRoomMemberRequest = {sendRoomMemberRequest}
+        roomId = {roomId}
+        setOrientation={setOrientation}/>
     </>
   }
 
@@ -221,19 +277,20 @@ export default function Chat() {
         </div>
       </div>
 
-  <form className="absolute bottom-0 w-[97%] text-white"  onSubmit={(e)=>handleSendMessage(e)}>
+      <div className="absolute bottom-0 w-[97%] text-white">
   <div className='flex gap-2 items-center mt-3 p-4 text-lg bg-gray-900 border-2 border-neutral-800 rounded-full text-white'>
     <input className='flex-grow bg-gray-900 text-white outline-none' placeholder="Type a message" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} />
     <div className='cursor-pointer flex items-center gap-5'>
-      <button onClick={handleGame}>
-      <FaChessBoard/>
+      <button onClick={() => {handleGame()}}>
+        <FaChessBoard />
       </button>
-      <button type='submit'>
-        <FiSend/>
+      <button onClick={(e)=>handleSendMessage(e)}>
+        <FiSend />
       </button>
     </div>
   </div>
-</form>
+</div>
+
       </div>
     </>
   );
