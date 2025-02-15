@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@chrisoakman/chessboardjs": "^1.0.0",
+    "appwrite": "^17.0.0",
     "autoprefixer": "10.4.16",
     "axios": "^1.6.2",
     "bcrypt": "^5.1.1",
@@ -38,5 +39,8 @@
     "tailwindcss": "3.3.5",
     "uuid": "^9.0.1",
     "zustand": "^4.4.7"
+  },
+  "devDependencies": {
+    "@types/react": "18.2.52"
   }
 }

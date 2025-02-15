@@ -1,4 +1,4 @@
-import '../styles/globals.css'
+
 import '../components/layout/Left'
 import Button from '@/components/Button'
 import Input from '@/components/Input'

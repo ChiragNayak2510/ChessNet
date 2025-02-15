@@ -34,8 +34,10 @@ export default function ChessboardComponent({ game, onDrop ,orientation,currentU
                 console.log(currentUser, gameId);
                 setModalState('request');
                 setOrientation('white');
-                setGame(new Chess())
-                socket.emit('request', true, roomId, gameId);
+                const newGame = new Chess()
+                setGame(()=>newGame)
+                console.log("Sending" ,newGame.fen())
+                socket.emit('request', true, roomId, gameId,newGame.fen());
               } else {
                 toast.error('User not online');
               }

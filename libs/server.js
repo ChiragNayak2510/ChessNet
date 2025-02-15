@@ -46,8 +46,8 @@ io.on('connection', (socket) => {
     socket.broadcast.to(id).emit('move',game,fen);
   })
 
-  socket.on('request',(gameRequest,roomId,gameId)=>{
-    socket.broadcast.to(roomId).emit('request', gameRequest,gameId);
+  socket.on('request',(gameRequest,roomId,gameId,game)=>{
+    socket.broadcast.to(roomId).emit('request', gameRequest,gameId,game);
   })
 
   socket.on('decline',(gameState,gameId)=>{

@@ -13,6 +13,7 @@ import useUserStore from '@/libs/store/useUserStore';
 import usegameStateStore from '@/libs/store/useGameStateStore';
 import ChessboardComponent from '@/components/ChessboardComp';
 import { toast } from 'react-toastify';
+import { set } from 'mongoose';
 
 
 export default function Chat() {
@@ -92,10 +93,12 @@ export default function Chat() {
           }
           console.log(currentUser, gameId);
           setGameState(true);
+          const newGame = new Chess()
+          setGame(()=>newGame)
           setModalState('request');
           setOrientation('white');
           socket.emit('joinGameRoom', currentUser.name, gameId);
-          socket.emit('request', true, roomId, gameId);
+          socket.emit('request', true, roomId, gameId,newGame.fen());
         } else {
           toast.error('User not online');
         }
@@ -207,9 +210,13 @@ export default function Chat() {
       console.log('Received',game.fen())
   })
 
-  socket?.on('request',(gameRequest,gameId)=>{
+  socket?.on('request',(gameRequest,gameId,game)=>{
+    console.log(game)
     setGameRequest(gameRequest)
     setGameId(gameId)
+    const newGame = new Chess(game)
+    console.log("here" ,game)
+    setGame(()=>newGame)
   })
 
   socket?.on('declined',(gameState)=>{
@@ -220,6 +227,7 @@ export default function Chat() {
   socket?.on('accepted',(game)=>{
     // setGameState(gameState)
     // setGame(game)
+    setGame(()=>new Chess())
     setModalState('game')  
   })
 

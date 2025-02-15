@@ -17,7 +17,8 @@ try{
             name,
             username,
             email,
-            hashedPassword
+            hashedPassword,
+            image : ""
     });
     const localJwtToken = jwt.sign({ id : user._id }, personalToken);
     return res.status(200).json(localJwtToken);

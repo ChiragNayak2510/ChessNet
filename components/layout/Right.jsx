@@ -8,6 +8,7 @@ import fetchCurrentUser from '@/libs/fetchCurrentUser';
 import useUserStore from '@/libs/store/useUserStore';
 import usegameStateStore from '@/libs/store/useGameStateStore';
 import Avatar from '../Avatar';
+import { event } from 'jquery';
 
 export default function Right() {
   const [data, setData] = useState([]);
@@ -42,6 +43,10 @@ export default function Right() {
     fetchData();
   }, []);
 
+  const openProfile = (userId)=>{
+    //event.stopPropagation();
+    router.push(`/users/${userId}`)
+  }
 
   const openChat = (userId,username)=>{
 
@@ -67,8 +72,8 @@ export default function Right() {
         {data.map((user) => (
           !currentUser || user._id !== currentUser._id ? (
             <div className="flex flex-row gap-4" key={user._id}>
-              <Avatar userId={userId} />
-              <div className="flex flex-col">
+              <Avatar userId={userId} onClick = {(e)=>{openProfile(user._id)}}/>
+              <div className="flex flex-col" onClick = {(e)=>{openProfile(user._id)}}>
                 <p className="text-white font-semibold text-md cursor-pointer text-lg">
                   {user.name}
                 </p>
